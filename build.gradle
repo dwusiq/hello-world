@@ -1,0 +1,135 @@
+group 'upb'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'maven'
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+[compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }
+    mavenLocal()
+    mavenCentral()
+}
+
+
+
+def springboot_version = "2.3.1.RELEASE"
+List springboot = [
+        "org.springframework.boot:spring-boot-starter-web:$springboot_version",
+        "org.springframework.boot:spring-boot-starter-aop:$springboot_version",
+        "org.springframework.boot:spring-boot-starter-jdbc:$springboot_version"
+]
+
+
+def jackson_version = "2.11.0"
+List jackson = [
+        "com.fasterxml.jackson.core:jackson-databind:$jackson_version",
+        "com.fasterxml.jackson.core:jackson-annotations:$jackson_version",
+        "com.fasterxml.jackson.core:jackson-core:$jackson_version",
+        "com.fasterxml.jackson.module:jackson-module-parameter-names:$jackson_version",
+        "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jackson_version",
+        "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version",
+        "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jackson_version"
+]
+
+List test = [
+        "org.springframework.boot:spring-boot-starter-test:$springboot_version"
+]
+
+List lombok = [
+        "org.projectlombok:lombok:1.18.12"
+]
+
+def log4j_version = "2.13.3"
+List log4j = [
+        "org.apache.logging.log4j:log4j-api:$log4j_version",
+        "org.apache.logging.log4j:log4j-core:$log4j_version",
+        "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version",
+        "org.apache.logging.log4j:log4j-web:$log4j_version"
+]
+
+List jaxb = [
+        "javax.xml.bind:jaxb-api:2.3.0",
+        "com.sun.xml.bind:jaxb-impl:2.3.0",
+        "com.sun.xml.bind:jaxb-core:2.3.0",
+        "javax.activation:activation:1.1.1",
+        "javax.validation:validation-api:2.0.1.Final"
+]
+
+
+List mybatis = [
+        "org.mybatis.spring.boot:mybatis-spring-boot-starter:2.0.0",
+        "mysql:mysql-connector-java:8.0.13",
+        "com.zaxxer:HikariCP:3.2.0"
+]
+
+List hutool = ["cn.hutool:hutool-all:5.4.0"]
+dependencies {
+    compile springboot, jackson, log4j, jaxb, mybatis,hutool
+
+    testCompile test
+
+    testCompile 'com.github.yuanmomo:mybatis-generator-plugin:1.0.9'
+
+    compileOnly lombok
+    annotationProcessor lombok
+
+    testCompileOnly lombok
+    testAnnotationProcessor lombok
+}
+
+configurations {
+    all*.exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    all*.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    all*.exclude group: 'log4j', module: 'log4j'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+}
+
+
+clean {
+    delete 'dist'
+    delete 'build'
+    delete 'log'
+}
+
+
+jar {
+    destinationDir file('dist/apps')
+    archiveName project.name + '.jar'
+    exclude '**/*.xml'
+    exclude '**/*.yml'
+    exclude '**/*.properties'
+
+    doLast {
+        copy {
+            from file('src/main/resources/')
+            into 'dist/conf'
+        }
+        copy {
+            from configurations.runtime
+            into 'dist/lib'
+        }
+        copy {
+            from file('.').listFiles().findAll { File f -> (f.name.endsWith('.sh') || f.name.endsWith('.env')) }
+            into 'dist'
+        }
+    }
+}

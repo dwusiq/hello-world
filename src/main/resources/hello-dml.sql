@@ -1,0 +1,1 @@
+insert into tb_message (content )values('hello,wellcome!!');

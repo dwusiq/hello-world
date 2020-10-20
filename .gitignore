@@ -1,0 +1,9 @@
+/.gradle/
+/.idea/
+/build/
+/log/
+/out/
+/dist/
+/dist.zip
+/src/main/resources/application-dev.yml
+/src.zip
